@@ -20,24 +20,24 @@
 }:
 let
   inherit (stdenv) hostPlatform;
-  version = "1.0.8";
+  version = "1.1.7";
 
   # The AOT engine (patched Bun + WebKit) is released as a signed binary; the
   # application is compiled from source against it. Its stamp is the release's
   # RUNTIME_STAMP (unchanged since 1.0.7).
-  runtimeStamp = "d615e931f06bb5a4";
+  runtimeStamp = "9606e2f852e92ee9";
   runtimeAssets = {
     x86_64-linux = fetchurl {
-      url = "https://github.com/opensec-git/Pi-Bolt/releases/download/bolt-v1.0.8/pi-bolt-runtime-linux-x64.tar.gz";
-      hash = "sha256-j9coh86LcVEPQvmdUoTlMemkN+LMpN7CY0SRMQiZO5I=";
+      url = "https://github.com/opensec-git/Pi-Bolt/releases/download/bolt-v1.1.7/pi-bolt-runtime-linux-x64.tar.gz";
+      hash = "sha256-iocH/hZxGpHTOTZFDNUKxuJm75nmnjwJ5SZlJUKi1J8=";
     };
     aarch64-linux = fetchurl {
-      url = "https://github.com/opensec-git/Pi-Bolt/releases/download/bolt-v1.0.8/pi-bolt-runtime-linux-arm64.tar.gz";
-      hash = "sha256-MOiLl7u6Iy0bHDsHjMtgJKVmGGQ4OGiP8sIMjYnOpWc=";
+      url = "https://github.com/opensec-git/Pi-Bolt/releases/download/bolt-v1.1.7/pi-bolt-runtime-linux-arm64.tar.gz";
+      hash = "sha256-1hzHgR2dpGKF/WMbdy2EwxeO/6TLM0QTcqm6YNK3vKk=";
     };
     aarch64-darwin = fetchurl {
-      url = "https://github.com/opensec-git/Pi-Bolt/releases/download/bolt-v1.0.8/pi-bolt-runtime-darwin-arm64.tar.gz";
-      hash = "sha256-SAg0eDiB03FhI6c/p3SKIEeZOLk2QHoXOUu82KXnt+E=";
+      url = "https://github.com/opensec-git/Pi-Bolt/releases/download/bolt-v1.1.7/pi-bolt-runtime-darwin-arm64.tar.gz";
+      hash = "sha256-iXjuugx3cAmfhLK66U97t6rc6EqjbmtbNVqnwycPrBs=";
     };
   };
   runtimeSrc =
@@ -52,7 +52,7 @@ stdenv.mkDerivation (finalAttrs: {
     owner = "opensec-git";
     repo = "Pi-Bolt";
     tag = "bolt-v${version}";
-    hash = "sha256-K4jHxhDTfdaSTkhuE6vrAaBf8E0MVVzMhp4tbenqyWE=";
+    hash = "sha256-IHGSW0lApGFrwKvi5UiKt0UOlIHtj5dpWM5535rblbE=";
   };
 
   inherit runtimeSrc;
