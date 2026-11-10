@@ -20,7 +20,7 @@
 }:
 let
   inherit (stdenv) hostPlatform;
-  version = "1.1.7";
+  version = "1.2.0";
 
   # The AOT engine (patched Bun + WebKit) is released as a signed binary; the
   # application is compiled from source against it. Its stamp is the release's
@@ -28,16 +28,16 @@ let
   runtimeStamp = "9606e2f852e92ee9";
   runtimeAssets = {
     x86_64-linux = fetchurl {
-      url = "https://github.com/opensec-git/Pi-Bolt/releases/download/bolt-v1.1.7/pi-bolt-runtime-linux-x64.tar.gz";
-      hash = "sha256-iocH/hZxGpHTOTZFDNUKxuJm75nmnjwJ5SZlJUKi1J8=";
+      url = "https://github.com/opensec-git/Pi-Bolt/releases/download/bolt-v1.2.0/pi-bolt-runtime-linux-x64.tar.gz";
+      hash = "sha256-/k3lqgGTlBCMnswJloBpR1RDjWYCDd4r0/OLgtdOYwc=";
     };
     aarch64-linux = fetchurl {
-      url = "https://github.com/opensec-git/Pi-Bolt/releases/download/bolt-v1.1.7/pi-bolt-runtime-linux-arm64.tar.gz";
-      hash = "sha256-1hzHgR2dpGKF/WMbdy2EwxeO/6TLM0QTcqm6YNK3vKk=";
+      url = "https://github.com/opensec-git/Pi-Bolt/releases/download/bolt-v1.2.0/pi-bolt-runtime-linux-arm64.tar.gz";
+      hash = "sha256-h9XE4+mvfBJH61p2PPHF3OI67wLLFkHzjqh48bDNZ9s=";
     };
     aarch64-darwin = fetchurl {
-      url = "https://github.com/opensec-git/Pi-Bolt/releases/download/bolt-v1.1.7/pi-bolt-runtime-darwin-arm64.tar.gz";
-      hash = "sha256-iXjuugx3cAmfhLK66U97t6rc6EqjbmtbNVqnwycPrBs=";
+      url = "https://github.com/opensec-git/Pi-Bolt/releases/download/bolt-v1.2.0/pi-bolt-runtime-darwin-arm64.tar.gz";
+      hash = "sha256-uckGvCisre7nplZmorouFb6W2fHRLTEqaIz6XM3eteI=";
     };
   };
   runtimeSrc =
@@ -52,7 +52,7 @@ stdenv.mkDerivation (finalAttrs: {
     owner = "opensec-git";
     repo = "Pi-Bolt";
     tag = "bolt-v${version}";
-    hash = "sha256-IHGSW0lApGFrwKvi5UiKt0UOlIHtj5dpWM5535rblbE=";
+    hash = "sha256-bwSnls6PLMlo0e+lxNad9/as3+pg/TbvmxC11EERs30=";
   };
 
   inherit runtimeSrc;
@@ -85,6 +85,14 @@ stdenv.mkDerivation (finalAttrs: {
     patchelf --set-interpreter ${stdenv.cc.bintools.dynamicLinker} $TMPDIR/runtime/bun
   '';
 
+  # 1.2.0's build runs a biome-based schema check. The generated files are
+  # committed, and importNpmLock does not install biome's platform binary.
+  # Skip the check; tsc still compiles the committed generated files.
+  postPatch = ''
+    substituteInPlace packages/coding-agent/package.json \
+      --replace-fail 'npm run generate:start-schemas -- --check && ' ""
+  '';
+
   buildPhase = ''
     runHook preBuild
 
@@ -106,8 +114,10 @@ stdenv.mkDerivation (finalAttrs: {
         --jit off \
         --out $out/lib/pi-bolt
 
-    # jiti's transpile cache goes stale when pi-bolt or an extension changes and
-    # Bun then segfaults loading it; disable it until upstream fixes the cache.
+    # Enable jiti's transpile cache for fast starts. A stale cache after a
+    # Pi-Bolt/extension change can segfault Bun; accepted temporarily while the
+    # upstream cache-invalidation fix is prepared. Clear ~/.pi/agent/cache/jiti
+    # or $TMPDIR/jiti if it crashes.
     makeWrapper $out/lib/pi-bolt/pi $out/bin/pi-bolt \
       --prefix PATH : ${
         lib.makeBinPath [
@@ -115,7 +125,7 @@ stdenv.mkDerivation (finalAttrs: {
           fd
         ]
       } \
-      --set-default JITI_FS_CACHE false
+      --set-default JITI_FS_CACHE true
 
     runHook postInstall
   '';
